@@ -67,7 +67,7 @@ else
         mv "${cbout}".bin "${cbout}"
     fi
 
-    if [ -e "${binfile}" ] && [ -e "${cbout}" ] && diff -wB -q "${binfile}" "${cbout}" > /dev/null
+    if [ -e "${binfile}" ] && [ -e "${cbout}" ] && diff -wBq "${binfile}" "${cbout}" > /dev/null
     then
         diff_ok=1
     fi
@@ -83,7 +83,7 @@ then
     exit 1
 elif [ ${arduino_pass} -eq 0 -a ${codebender_pass} -eq 0 ]
 then
-    if [ -e "${arduino_err_logfile}" -a -e "${cb_err_logfile}" ] && diff -Wbq -u "${arduino_err_logfile}" "${cb_err_logfile}" > /dev/null
+    if [ -e "${arduino_err_logfile}" -a -e "${cb_err_logfile}" ] && diff -wBq "${arduino_err_logfile}" "${cb_err_logfile}" > /dev/null
     then
         printf "${logfmt}" "OK (BOTH FAILED)" "${fqbn}" "${inopath}"
         exit 0
