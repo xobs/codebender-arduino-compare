@@ -44,6 +44,7 @@ then
     sed -i "s|$(pwd)/${inopath}||g" "${arduino_err_logfile}"
     sketchname=$(basename ${inopath})
     sed -i "s/${sketchname}/(sketch file) ${sketchname}.ino/g" "${arduino_err_logfile}"
+    sed -i 's/\.ino\.ino/.ino/g' "${arduino_err_logfile}"
 fi
 objtxt=$(grep '/tmp/build' "${arduino_logfile}" | tail -n 1 | rev)
 rm -f "${arduino_logfile}"
