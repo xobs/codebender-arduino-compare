@@ -26,8 +26,10 @@ inopath=$(readlink -f "${inopath}" | sed "s|$(pwd)/||g")/
 cbout=/tmp/cb.bin
 arduino_logfile=/tmp/arduino-log.txt
 arduino_err_logfile=/tmp/arduino-err-log.txt
+arduino_err_logfile_lines=/tmp/arduino-err-lines-log.txt
 cb_logfile=/tmp/cb-log.txt
 cb_err_logfile=/tmp/cb-err-log.txt
+cb_err_logfile_lines=/tmp/cb-err-lines-log.txt
 logfmt="%-30s  %30s  %s\n"
 
 arduino_pass=1
@@ -45,6 +47,7 @@ then
     sketchname=$(basename ${inopath})
     sed -i "s/${sketchname}/(sketch file) ${sketchname}.ino/g" "${arduino_err_logfile}"
     sed -i 's/\.ino\.ino/.ino/g' "${arduino_err_logfile}"
+    egrep ':[0-9]+:' < "${arduino_err_logfile}" | cut -d: -f2 > "${arduino_err_logfile_lines}"
 fi
 objtxt=$(grep '/tmp/build' "${arduino_logfile}" | tail -n 1 | rev)
 rm -f "${arduino_logfile}"
@@ -59,6 +62,7 @@ if [ "$(jq .output < "${cb_logfile}")" = "null" ] || [ -z "${binfile}" ] || [ -z
 then
     codebender_pass=0
     jq .message < "${cb_logfile}" | sed 's/^.//' | sed 's/.$//g' | perl -ne 's/\\n/\n/g; print' | perl -ne 's/\\r/\r/g; print' > "${cb_err_logfile}"
+    egrep ':[0-9]+:' < "${cb_err_logfile}" | cut -d: -f2 > "${cb_err_logfile_lines}"
 else
     jq .output < "${cb_logfile}" | sed 's/^.//' | sed 's/.$//g' | perl -ne 's/\\n/\n/g; print' | perl -ne 's/\\r/\r/g; print' > "${cbout}"
 
@@ -84,7 +88,7 @@ then
     exit 1
 elif [ ${arduino_pass} -eq 0 -a ${codebender_pass} -eq 0 ]
 then
-    if [ -e "${arduino_err_logfile}" -a -e "${cb_err_logfile}" ] && diff -wBq "${arduino_err_logfile}" "${cb_err_logfile}" > /dev/null
+    if [ -e "${arduino_err_logfile}" -a -e "${cb_err_logfile}" ] && diff -wBq "${arduino_err_logfile_lines}" "${cb_err_logfile_lines}" > /dev/null
     then
         printf "${logfmt}" "OK (BOTH FAILED)" "${fqbn}" "${inopath}"
         exit 0
